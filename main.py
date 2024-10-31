@@ -1,7 +1,8 @@
 # main file for running simulations
 
-# import packages
+# Kommentar als Test für Git-Setup
 
+# import packages
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
