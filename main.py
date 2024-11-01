@@ -26,7 +26,7 @@ init_amt_transp = 4
 init_amt_wip = 4
 init_amt_stock = 12
 init_order = 4
-# TBD 
+# TBDD
 init_cycle_stock = 8
 init_safety_stock = 8
 
