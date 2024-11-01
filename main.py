@@ -11,11 +11,12 @@ import functions as f
 import plotting as p
 from company import Company
 
+
 # CONSTANTS
 # simulation constants
 std_dev = 10
 avg_demand = 10
-sim_time = 20
+sim_time = 30
 cost_stock = 0.5
 cost_blog = 1
 np.random.seed(42)

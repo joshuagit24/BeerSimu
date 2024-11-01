@@ -14,13 +14,18 @@ def print_matrices_as_tables(brewery, bottler, wholesaler, bar):
     columns = [
         'Week', 'Order_Cust', 'Amt_Transp', 'Amt_WIP', 'Amt_Stock', 
         'Order_Suppl', 'Cycle_Stock', 'Safety_Stock', 'Backlog', 
-        'Demand_Cust', 'Delivered_Cust'
+        'Demand_Cust', 'Delivered'
     ]
     # Convert each company's history to a DataFrame with all attributes
     df_brew = pd.DataFrame(brewery.history, columns=columns)
     df_bottl = pd.DataFrame(bottler.history, columns=columns)
     df_wholes = pd.DataFrame(wholesaler.history, columns=columns)
     df_bar = pd.DataFrame(bar.history, columns=columns)
+    # Drop the 'Cycle_Stock' and 'Safety_Stock' columns from each DataFrame
+    df_brew = df_brew.drop(columns=['Cycle_Stock', 'Safety_Stock'])
+    df_bottl = df_bottl.drop(columns=['Cycle_Stock', 'Safety_Stock'])
+    df_wholes = df_wholes.drop(columns=['Cycle_Stock', 'Safety_Stock'])
+    df_bar = df_bar.drop(columns=['Cycle_Stock', 'Safety_Stock'])
     # Print each DataFrame as a table
     print("\nBrewery Table:")
     print(df_brew.to_string(index=False))
