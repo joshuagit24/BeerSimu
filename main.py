@@ -1,143 +1,105 @@
 # main file for running simulations
 
 # import packages
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import pandas as pd
 
-# import seperate .py into main
+# import seperate .py-files into main
 import functions as f
+import plotting as p
+from company import Company
 
 
 # CONSTANTS
-
-# sim constants
+# simulation constants
 std_dev = 10
 avg_demand = 10
-sim_time = 31
+sim_time = 30
 cost_stock = 0.5
 cost_blog = 1
 np.random.seed(42)
 
-# starting conditions
-s_amt_transp = 4
-s_amt_wip = 4
-s_amt_stock = 12
+# Starting conditions/amounts for the companies
+# Depends on the rules
+init_amt_transp = 4
+init_amt_wip = 4
+init_amt_stock = 12
+init_order = 4
+# TBDD
+init_cycle_stock = 8
+init_safety_stock = 8
 
-# speculated inventory variables
-s_cycle_stock = 8
-s_safety_stock = 20
+# Initialize the Company objects with corresponding attributes
+# supplier has 'unlimited' stock and needs less info
+supplier = Company("Supplier", init_order, init_amt_transp, init_amt_wip, 10000, 0, 0)
+brewery = Company("Brewery", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
+bottler = Company("Bottler", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
+wholesaler = Company("Wholesaler", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
+bar = Company("Bar", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
 
-# safety stock for SL (85 = 1.05, 95 = 1.65)
-SL = 1.65
-brew_safety_stock = int(SL * np.sqrt(2) * 10)
-bottl_safety_stock = int(SL * np.sqrt(4) * 10)
-wholes_safety_stock = int(SL * np.sqrt(6) * 10)
-bar_safety_stock = int(SL * np.sqrt(8) * 10)
-
-print(brew_safety_stock, bottl_safety_stock, wholes_safety_stock, bar_safety_stock)
-
+# List of Company objects
+companies = [supplier, brewery, bottler, wholesaler, bar]
 
 # SIMULATION
-
 # start simulation, define starting vector and start weekly cycle
 def sim():
-    # definition of vectors for weekly data of companys
-    # (week, order_suppl, amt_transp, amt_wip, amt_stock, cycle_stock, safety_stock, order_cust, blog_cust, demand_cust, delivered_cust)
-    # vector 0 = week
-    # vector 1 = order_suppl
-    # vector 2 = amt_transp
-    # vector 3 = amt_wip
-    # vector 4 = amt_stock
-    # vector 5 = cycle_stock
-    # vector 6 = safety_stock
-    # vector 7 = order_cust
-    # vector 8 = blog_cust
-    # vector 9 = demand_cust
-    # vector 10 = delivered_cust
-
-    v_brew = [0, 4, s_amt_transp, s_amt_wip, s_amt_stock, s_cycle_stock, brew_safety_stock, 4, 0, 4, 4]
-    v_bottl = [0, 4, s_amt_transp, s_amt_wip, s_amt_stock, s_cycle_stock, bottl_safety_stock, 4, 0, 4, 4]
-    v_wholes = [0, 4, s_amt_transp, s_amt_wip, s_amt_stock, s_cycle_stock, wholes_safety_stock, 4, 0, 4, 4]
-    v_bar = [0, 4, s_amt_transp, s_amt_wip, s_amt_stock, s_cycle_stock, bar_safety_stock, 4, 0, 4, 0]
-
-    # variable for additional step order brewery
-    v_brew_prep = 4
-
-    # define starting matrix
-    m_brew = []
-    m_bottl = []
-    m_wholes = []
-    m_bar = []
-
-    # define list with every vector
-    v_list = (v_brew, v_bottl, v_wholes, v_bar)
-
-    # define list with every matrix
-    m_list = (m_brew, m_bottl, m_wholes, m_bar)
-
 
     # loop for sim_time
     for i in range(1, sim_time+1):
+        # marker for each week
+        print(f"\n--- Week {i} ---")
+
+        # Loop through each company to update the week
+        for company in companies:
+            # update current week in the company object
+            company.week = i
+
+        # Set customer demand for the bar
+        # demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
+        # demand_guest = 8 if i > 7 else 4
+        demand_guest = 20
+        # pass on demand to bar
+        bar.order_cust = demand_guest
+
+        # Loop through each company to process production and transport
+        for company in companies:  # skip the first supplier
+            # Move products from WIP into stock
+            f.move_to_stock(company)
+            # Move products from transport into WIP
+            f.move_to_wip(company)
+
+        for company in companies:
+            # Calculate customer demand
+            f.calc_demand_cust(company)
+            # Calculate delivery amount
+            del_amt = f.calc_delivery(company)
+            # Dispatch order to the customer
+            f.move_to_transp(company, companies, del_amt)
+
+        for company in companies:
+            # determine order amount from the supplier
+            f.calc_order_suppl_v1(company)
         
-        # calculation of demand with normal distribution ANS ENDE
-        # demand_ak = int(f.generate_positive_normal(avg_demand, std_dev))
-        # demand_ak = 8 if i > 7 else 4
-        demand_ak = 10
-        v_list[3][7] = demand_ak
+        for company in companies[1:]:  # Skip supplier for weekly data storage
+            # save the data in the history
+            company.save_weekly_data()
 
-        # loop for every company
-        for c in v_list:
-            # move products from wip into stock
-            f.move_to_stock(c)
+        for company in reversed(companies[1:]):  # Start from the last and go backwards
+            f.pass_order(company, companies)
 
-            # move products from transport into wip
-            f.move_to_wip(c)
-
-        for c in v_list:
-            # calculate demand
-            f.calc_demand_cust(c)
-
-            # calculate delivery amount
-            del_amt = f.calc_delivery(c)
-
-            # dispatch order to customer
-            v_brew_prep = f.move_to_transp(c, v_list, del_amt, v_brew_prep)
-
-        for c in v_list:
-            # change order amout from supplier
-            # f.calc_order_suppl_v1(c)
-            # f.calc_order_suppl_v2(c)
-            # f.calc_order_suppl_v3(c, v_list)
-            f.calc_order_suppl_v4(c, v_list)
-
-            # save vector in matrix
-            f.save_into_matrix(m_list, c, v_list)
-
-            # change var:week to current
-            f.change_week(c, i)
-        
-
-        for c in v_list:
-            # pass order_suppl of company previous in line into order_cust of current company
-            v_brew_prep = f.pass_order(c, v_list, v_brew_prep)
-
-    
-    f.print_matrices_as_tables(m_brew, m_bottl, m_wholes, m_bar)
-
-    f.plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar)
-
-    f.plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar)
-
-    f.plot_service_level(m_brew, m_bottl, m_wholes, m_bar)
+    # PLOTTING
+    # Print tables
+    p.print_matrices_as_tables(brewery, bottler, wholesaler, bar)
+    # # plotting backlog and stock in four diagrams
+    # p.plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar)
+    # # plotting the costs of the four actors
+    # p.plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar)
+    # # plotting the costs of the complete chain
+    # p.plot_service_level(m_brew, m_bottl, m_wholes, m_bar)
     
     return
         
-    
-
-
 #RUN
-
 sim()
