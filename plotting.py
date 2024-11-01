@@ -1,52 +1,30 @@
 # functions file for plotting
 
 # import packages
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import pandas as pd
 
 
-# KPI FUNCTIONS
-
-# Function to print each matrix as a table without 'Cycle_Stock' and 'Safety_Stock' columns
-def print_matrices_as_tables(m_brew, m_bottl, m_wholes, m_bar):
-    # Define column names for readability, excluding 'Cycle_Stock' and 'Safety_Stock'
+# function to print the tables
+def print_matrices_as_tables(brewery, bottler, wholesaler, bar):
     columns = ['Week', 'Order_Suppl', 'Amt_Transp', 'Amt_WIP', 'Amt_Stock', 
                'Order_Cust', 'Backlog_Cust', 'Demand_Cust', 'Delivered_Cust']
-    
-    # Manually filter out 'Cycle_Stock' and 'Safety_Stock' from each row (index 5 and 6)
-    m_brew_filtered = [[row[i] for i in [0, 1, 2, 3, 4, 7, 8, 9, 10]] for row in m_brew]
-    m_bottl_filtered = [[row[i] for i in [0, 1, 2, 3, 4, 7, 8, 9, 10]] for row in m_bottl]
-    m_wholes_filtered = [[row[i] for i in [0, 1, 2, 3, 4, 7, 8, 9, 10]] for row in m_wholes]
-    m_bar_filtered = [[row[i] for i in [0, 1, 2, 3, 4, 7, 8, 9, 10]] for row in m_bar]
-    
-    # Convert each filtered matrix to a DataFrame for pretty printing
-    df_brew = pd.DataFrame(m_brew_filtered, columns=columns)
-    df_bottl = pd.DataFrame(m_bottl_filtered, columns=columns)
-    df_wholes = pd.DataFrame(m_wholes_filtered, columns=columns)
-    df_bar = pd.DataFrame(m_bar_filtered, columns=columns)
-    
+    # Convert each company's history to a DataFrame, filtering out cycle_stock and safety_stock
+    df_brew = pd.DataFrame([row[:5] + row[7:] for row in brewery.history], columns=columns)
+    df_bottl = pd.DataFrame([row[:5] + row[7:] for row in bottler.history], columns=columns)
+    df_wholes = pd.DataFrame([row[:5] + row[7:] for row in wholesaler.history], columns=columns)
+    df_bar = pd.DataFrame([row[:5] + row[7:] for row in bar.history], columns=columns)
     # Print each DataFrame as a table
     print("\nBrewery Table:")
     print(df_brew.to_string(index=False))
-
     print("\nBottler Table:")
     print(df_bottl.to_string(index=False))
-
     print("\nWholesaler Table:")
     print(df_wholes.to_string(index=False))
-
     print("\nBar Table:")
     print(df_bar.to_string(index=False))
-
-
-# Example of how you might call this function after the simulation
-# Assuming m_brew, m_bottl, m_wholes, m_bar have been updated in your simulation
-# Call the function like this:
-# print_matrices_as_tables(m_brew, m_bottl, m_wholes, m_bar)
-
 
 # FUNCTION TO PLOT BACKLOG AND STOCK
 
