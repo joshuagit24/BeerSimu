@@ -5,12 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import pandas as pd
+from company import Company
 
 
 # function to print the tables
 def print_matrices_as_tables(brewery, bottler, wholesaler, bar):
-    columns = ['Week', 'Order_Suppl', 'Amt_Transp', 'Amt_WIP', 'Amt_Stock', 
-               'Order_Cust', 'Backlog_Cust', 'Demand_Cust', 'Delivered_Cust']
+    columns = ['Week', 'Order_Cust', 'Amt_Transp', 'Amt_WIP', 'Amt_Stock', 
+               'Order_Suppl', 'Backlog', 'Demand', 'Delivered']
     # Convert each company's history to a DataFrame, filtering out cycle_stock and safety_stock
     df_brew = pd.DataFrame([row[:5] + row[7:] for row in brewery.history], columns=columns)
     df_bottl = pd.DataFrame([row[:5] + row[7:] for row in bottler.history], columns=columns)

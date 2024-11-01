@@ -15,24 +15,24 @@ from company import Company
 # simulation constants
 std_dev = 10
 avg_demand = 10
-sim_time = 31
+sim_time = 20
 cost_stock = 0.5
 cost_blog = 1
 np.random.seed(42)
 
-# starting conditions/amounts for the companies
+# Starting conditions/amounts for the companies
+# Depends on the rules
 init_amt_transp = 4
 init_amt_wip = 4
 init_amt_stock = 12
 init_order = 4
-# tbd 
+# TBD 
 init_cycle_stock = 8
 init_safety_stock = 8
 
 # Initialize the Company objects with corresponding attributes
 # supplier has 'unlimited' stock and needs less info
-supplier = Company("Supplier", init_order, 0, 0, 10000, 0, 0)
-# remaining companies are created with initial values
+supplier = Company("Supplier", init_order, init_amt_transp, init_amt_wip, 10000, 0, 0)
 brewery = Company("Brewery", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
 bottler = Company("Bottler", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
 wholesaler = Company("Wholesaler", init_order, init_amt_transp, init_amt_wip, init_amt_stock, init_cycle_stock, init_safety_stock)
@@ -45,24 +45,25 @@ companies = [supplier, brewery, bottler, wholesaler, bar]
 # start simulation, define starting vector and start weekly cycle
 def sim():
 
-    # define starting matrix
-    m_brewer = []
-    m_bottler = []
-    m_wholesaler = []
-    m_bar = []
-
-
     # loop for sim_time
     for i in range(1, sim_time+1):
-        
+        # marker for each week
+        print(f"\n--- Week {i} ---")
+
+        # Loop through each company to update the week
+        for company in companies:
+            # update current week in the company object
+            company.week = i
+
         # Set customer demand for the bar
         # demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
         # demand_guest = 8 if i > 7 else 4
         demand_guest = 20
+        # pass on demand to bar
         bar.order_cust = demand_guest
 
         # Loop through each company to process production and transport
-        for company in companies[1:]:  # skip the first supplier
+        for company in companies:  # skip the first supplier
             # Move products from WIP into stock
             f.move_to_stock(company)
             # Move products from transport into WIP
@@ -79,16 +80,13 @@ def sim():
         for company in companies:
             # determine order amount from the supplier
             f.calc_order_suppl_v1(company)
-            # update current week in the company object
-            company.week = i
         
-        for company in companies:
-            # Pass order_suppl of the previous company in line to order_cust of the current company
-            f.pass_order(company, companies)
-
         for company in companies[1:]:  # Skip supplier for weekly data storage
             # save the data in the history
             company.save_weekly_data()
+
+        for company in reversed(companies[1:]):  # Start from the last and go backwards
+            f.pass_order(company, companies)
 
     # PLOTTING
     # Print tables
