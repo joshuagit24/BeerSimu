@@ -1,7 +1,5 @@
 # main file for running simulations
 
-# Kommentar als Test für Git-Setup
-
 # import packages
 import numpy as np
 import matplotlib.pyplot as plt
