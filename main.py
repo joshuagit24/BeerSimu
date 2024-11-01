@@ -1,16 +1,14 @@
 # main file for running simulations
 
-# Kommentar als Test für Git-Setup
-
 # import packages
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import pandas as pd
 
-# import seperate .py into main
+# import seperate .py-files into main
 import functions as f
-
+import plotting as p
 
 # CONSTANTS
 
@@ -86,7 +84,7 @@ def sim():
         # calculation of demand with normal distribution ANS ENDE
         # demand_ak = int(f.generate_positive_normal(avg_demand, std_dev))
         # demand_ak = 8 if i > 7 else 4
-        demand_ak = 10
+        demand_ak = 20
         v_list[3][7] = demand_ak
 
         # loop for every company
@@ -109,10 +107,10 @@ def sim():
 
         for c in v_list:
             # change order amout from supplier
-            # f.calc_order_suppl_v1(c)
+            f.calc_order_suppl_v1(c)
             # f.calc_order_suppl_v2(c)
             # f.calc_order_suppl_v3(c, v_list)
-            f.calc_order_suppl_v4(c, v_list)
+            # f.calc_order_suppl_v4(c, v_list)
 
             # save vector in matrix
             f.save_into_matrix(m_list, c, v_list)
@@ -125,14 +123,19 @@ def sim():
             # pass order_suppl of company previous in line into order_cust of current company
             v_brew_prep = f.pass_order(c, v_list, v_brew_prep)
 
-    
-    f.print_matrices_as_tables(m_brew, m_bottl, m_wholes, m_bar)
+    # PLOTTING
 
-    f.plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar)
+    # plotting the four tables 
+    p.print_matrices_as_tables(m_brew, m_bottl, m_wholes, m_bar)
 
-    f.plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar)
+    # plotting backlog and stock in four diagrams
+    p.plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar)
 
-    f.plot_service_level(m_brew, m_bottl, m_wholes, m_bar)
+    # plotting the costs of the four actors
+    p.plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar)
+
+    # plotting the costs of the complete chain
+    p.plot_service_level(m_brew, m_bottl, m_wholes, m_bar)
     
     return
         
