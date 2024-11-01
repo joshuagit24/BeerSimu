@@ -55,10 +55,14 @@ def move_to_transp(company, companies, del_amt):
     idx = companies.index(company)
     if idx < len(companies) - 1:  # Skip for the last company in line
         next_company = companies[idx + 1]
-        company.delivered_cust = del_amt
+        company.delivered_cust += del_amt
         # company.amt_stock -= del_amt
         next_company.amt_transp = del_amt
         print(f"{company.name} - Dispatched {del_amt} to {next_company.name} (Transport={next_company.amt_transp})")
+    else:
+        # Special handling for Bar (last in line)
+        company.delivered_cust += del_amt
+        print(f"{company.name} - Delivered {del_amt} to customer")
 
 # Calculate the ordered amount
 # Version 1: order the amount that the customer took

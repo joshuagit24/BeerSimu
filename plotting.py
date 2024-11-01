@@ -8,15 +8,19 @@ import pandas as pd
 from company import Company
 
 
-# function to print the tables
+# Function to print the tables
 def print_matrices_as_tables(brewery, bottler, wholesaler, bar):
-    columns = ['Week', 'Order_Cust', 'Amt_Transp', 'Amt_WIP', 'Amt_Stock', 
-               'Order_Suppl', 'Backlog', 'Demand', 'Delivered']
-    # Convert each company's history to a DataFrame, filtering out cycle_stock and safety_stock
-    df_brew = pd.DataFrame([row[:5] + row[7:] for row in brewery.history], columns=columns)
-    df_bottl = pd.DataFrame([row[:5] + row[7:] for row in bottler.history], columns=columns)
-    df_wholes = pd.DataFrame([row[:5] + row[7:] for row in wholesaler.history], columns=columns)
-    df_bar = pd.DataFrame([row[:5] + row[7:] for row in bar.history], columns=columns)
+    # Define all columns to include every attribute of the Company
+    columns = [
+        'Week', 'Order_Cust', 'Amt_Transp', 'Amt_WIP', 'Amt_Stock', 
+        'Order_Suppl', 'Cycle_Stock', 'Safety_Stock', 'Backlog', 
+        'Demand_Cust', 'Delivered_Cust'
+    ]
+    # Convert each company's history to a DataFrame with all attributes
+    df_brew = pd.DataFrame(brewery.history, columns=columns)
+    df_bottl = pd.DataFrame(bottler.history, columns=columns)
+    df_wholes = pd.DataFrame(wholesaler.history, columns=columns)
+    df_bar = pd.DataFrame(bar.history, columns=columns)
     # Print each DataFrame as a table
     print("\nBrewery Table:")
     print(df_brew.to_string(index=False))
@@ -28,7 +32,6 @@ def print_matrices_as_tables(brewery, bottler, wholesaler, bar):
     print(df_bar.to_string(index=False))
 
 # FUNCTION TO PLOT BACKLOG AND STOCK
-
 def plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar):
     # Define the figure and axes
     fig, axs = plt.subplots(2, 1, figsize=(10, 8))
