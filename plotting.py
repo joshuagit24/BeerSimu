@@ -178,7 +178,7 @@ def plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar):
 
 
 # Funktion zum Berechnen des Servicelevels und zum Plotten
-def plot_service_level(m_brew, m_bottl, m_wholes, m_bar):
+def plot_service_level(brewery, bottler, wholesaler, bar):
     # Funktion zur Berechnung des Servicelevels für eine Matrix
     def calculate_service_level(matrix):
         demand = [row[9] for row in matrix]        # Spalte "demand_cust"
@@ -191,10 +191,10 @@ def plot_service_level(m_brew, m_bottl, m_wholes, m_bar):
         return service_level
 
     # Servicelevel für jede Station berechnen
-    service_level_brew = calculate_service_level(m_brew)
-    service_level_bottl = calculate_service_level(m_bottl)
-    service_level_wholes = calculate_service_level(m_wholes)
-    service_level_bar = calculate_service_level(m_bar)
+    service_level_brew = calculate_service_level(brewery.history)
+    service_level_bottl = calculate_service_level(bottler.history)
+    service_level_wholes = calculate_service_level(wholesaler.history)
+    service_level_bar = calculate_service_level(bar.history)
 
     # Plot des Servicelevels für jede Station
     weeks = np.arange(1, len(service_level_brew) + 1)
