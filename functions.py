@@ -70,6 +70,12 @@ def calc_order_suppl_v1(company):
     company.order_suppl = company.order_cust
     print(f"{company.name} - Calculated order to supplier: {company.order_suppl}")
 
+# Version 2: order the amount that the bar-customer took
+def calc_order_suppl_v2(company, bar):
+    company.order_suppl = bar.order_cust
+    print(f"{company.name} - Calculated order to supplier: {company.order_suppl}")
+
+
 # Pass the order up the supply chain (from Bar towards Supplier)
 def pass_order(company, companies):
     idx = companies.index(company)
