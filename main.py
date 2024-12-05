@@ -95,10 +95,10 @@ def sim():
     p.print_matrices_as_tables(brewery, bottler, wholesaler, bar)
     # plotting backlog and stock in four diagrams
     p.plot_combined_backlog_and_stock(brewery, bottler, wholesaler, bar)
-    # plotting the costs of the four actors
+    # plotting the costs of the four actors and the costs of the complete chain
     p.plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar)
-    # # plotting the costs of the complete chain
-    # p.plot_service_level(m_brew, m_bottl, m_wholes, m_bar)
+    # plotting the service level of the sc
+    p.plot_service_level(brewery, bottler, wholesaler, bar)
     
     return
         
