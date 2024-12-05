@@ -37,24 +37,24 @@ def print_matrices_as_tables(brewery, bottler, wholesaler, bar):
     print(df_bar.to_string(index=False))
 
 # FUNCTION TO PLOT BACKLOG AND STOCK
-def plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar):
+def plot_combined_backlog_and_stock(brewery, bottler, wholesaler, bar):
     # Define the figure and axes
     fig, axs = plt.subplots(2, 1, figsize=(10, 8))
 
-    # Extract week, backlog, and stock columns for each matrix
-    weeks = [row[0] for row in m_brew]
+    # Extract week, backlog, stock, and orders from the history of each company
+    weeks = [row[0] for row in brewery.history]
     
-    # Kombiniertes Array für Stock und Backlog
-    combined_brew = [row[4] - row[8] for row in m_brew]  # Stock minus Backlog
-    combined_bottl = [row[4] - row[8] for row in m_bottl]
-    combined_wholes = [row[4] - row[8] for row in m_wholes]
-    combined_bar = [row[4] - row[8] for row in m_bar]
+    # Combined Stock and Backlog
+    combined_brew = [row[4] - row[8] for row in brewery.history]  # Amt_Stock - Backlog
+    combined_bottl = [row[4] - row[8] for row in bottler.history]
+    combined_wholes = [row[4] - row[8] for row in wholesaler.history]
+    combined_bar = [row[4] - row[8] for row in bar.history]
 
-    # Order of station
-    order_brew = [row[1] for row in m_brew]
-    order_bottl = [row[1] for row in m_bottl]
-    order_wholes = [row[1] for row in m_wholes]
-    order_bar = [row[1] for row in m_bar]
+    # Orders
+    order_brew = [row[5] for row in brewery.history]  # Order_Cust
+    order_bottl = [row[5] for row in bottler.history]
+    order_wholes = [row[5] for row in wholesaler.history]
+    order_bar = [row[5] for row in bar.history]
 
     # Plot combined Stock and Backlog
     axs[0].plot(weeks, combined_brew, label="Brewery Stock-Backlog", color='blue', marker='o')
@@ -85,13 +85,11 @@ def plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar):
     plt.show()
 
 
-# FUNCTION TO PLOT COSTS PER ACTOR AND ENTIRE SUPPLY CHAIN
+def plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar):
+    # Extract week numbers from any actor's history (all should have the same weeks)
+    weeks = [row[0] for row in brewery.history]
 
-def plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar):
-    # Extract week, backlog, and stock columns for each matrix
-    weeks = [row[0] for row in m_brew]
-
-    # Initialize cumulative cost lists for each actor and for the entire supply chain
+    # Initialize cumulative cost dictionaries for each actor and the entire supply chain
     costs_brew = {'stock': [], 'backlog': [], 'total': []}
     costs_bottl = {'stock': [], 'backlog': [], 'total': []}
     costs_wholes = {'stock': [], 'backlog': [], 'total': []}
@@ -100,13 +98,13 @@ def plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar):
     total_supply_chain_costs = {'stock': [], 'backlog': [], 'total': []}
 
     # Helper function to calculate costs
-    def calculate_costs(matrix):
+    def calculate_costs(history):
         stock_costs = []
         backlog_costs = []
         total_costs = []
         cum_stock = cum_backlog = cum_total = 0
 
-        for row in matrix:
+        for row in history:
             stock_cost = row[4] * 0.5  # 0.5€ per unit of stock
             backlog_cost = row[8] * 1  # 1€ per unit of backlog
             total_cost = stock_cost + backlog_cost
@@ -123,10 +121,10 @@ def plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar):
         return stock_costs, backlog_costs, total_costs
 
     # Calculate costs for each actor
-    costs_brew['stock'], costs_brew['backlog'], costs_brew['total'] = calculate_costs(m_brew)
-    costs_bottl['stock'], costs_bottl['backlog'], costs_bottl['total'] = calculate_costs(m_bottl)
-    costs_wholes['stock'], costs_wholes['backlog'], costs_wholes['total'] = calculate_costs(m_wholes)
-    costs_bar['stock'], costs_bar['backlog'], costs_bar['total'] = calculate_costs(m_bar)
+    costs_brew['stock'], costs_brew['backlog'], costs_brew['total'] = calculate_costs(brewery.history)
+    costs_bottl['stock'], costs_bottl['backlog'], costs_bottl['total'] = calculate_costs(bottler.history)
+    costs_wholes['stock'], costs_wholes['backlog'], costs_wholes['total'] = calculate_costs(wholesaler.history)
+    costs_bar['stock'], costs_bar['backlog'], costs_bar['total'] = calculate_costs(bar.history)
 
     # Calculate total costs for the entire supply chain
     for i in range(len(weeks)):
@@ -138,8 +136,8 @@ def plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar):
         total_supply_chain_costs['backlog'].append(total_backlog)
         total_supply_chain_costs['total'].append(total_total)
 
-    # print total costs of supply chain
-    print(f"Total Cost of Supply Chain: ", total_total, " €")
+    # Print total cost of supply chain
+    print(f"Total Cost of Supply Chain: {total_total} €")
 
     # Plot costs for each actor
     fig_actor, axs_actor = plt.subplots(4, 1, figsize=(10, 12))
@@ -159,6 +157,8 @@ def plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar):
 
     plt.tight_layout()
     plt.show()
+
+
 
     # Plot total costs for the entire supply chain
     fig_total, ax_total = plt.subplots(figsize=(10, 6))
