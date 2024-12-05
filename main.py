@@ -14,7 +14,7 @@ from company import Company
 
 # CONSTANTS
 # simulation constants
-std_dev = 10
+std_dev = 2
 avg_demand = 10
 sim_time = 30
 cost_stock = 0.5
@@ -57,9 +57,9 @@ def sim():
             company.week = i
 
         # Set customer demand for the bar
-        # demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
+        demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
         # demand_guest = 8 if i > 7 else 4
-        demand_guest = 20
+        #demand_guest = 20
         # pass on demand to bar
         bar.order_cust = demand_guest
 
@@ -80,7 +80,8 @@ def sim():
 
         for company in companies:
             # determine order amount from the supplier
-            f.calc_order_suppl_v1(company)
+            # f.calc_order_suppl_v1(company)
+            f.calc_order_suppl_v2(company, bar)
         
         for company in companies[1:]:  # Skip supplier for weekly data storage
             # save the data in the history
@@ -92,11 +93,11 @@ def sim():
     # PLOTTING
     # Print tables
     p.print_matrices_as_tables(brewery, bottler, wholesaler, bar)
-    # # plotting backlog and stock in four diagrams
-    # p.plot_combined_backlog_and_stock(m_brew, m_bottl, m_wholes, m_bar)
-    # # plotting the costs of the four actors
-    # p.plot_costs_per_actor_and_supply_chain(m_brew, m_bottl, m_wholes, m_bar)
-    # plotting the service level of each company
+    # plotting backlog and stock in four diagrams
+    p.plot_combined_backlog_and_stock(brewery, bottler, wholesaler, bar)
+    # plotting the costs of the four actors and the costs of the complete chain
+    p.plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar)
+    # plotting the service level of the sc
     p.plot_service_level(brewery, bottler, wholesaler, bar)
     
     return
