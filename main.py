@@ -14,7 +14,7 @@ from company import Company
 
 # CONSTANTS
 # simulation constants
-std_dev = 2
+std_dev = 10
 avg_demand = 10
 sim_time = 30
 cost_stock = 0.5
@@ -57,9 +57,9 @@ def sim():
             company.week = i
 
         # Set customer demand for the bar
-        demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
+        # demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
         # demand_guest = 8 if i > 7 else 4
-        #demand_guest = 20
+        demand_guest = 8
         # pass on demand to bar
         bar.order_cust = demand_guest
 

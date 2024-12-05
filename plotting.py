@@ -90,54 +90,66 @@ def plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar):
     weeks = [row[0] for row in brewery.history]
 
     # Initialize cumulative cost dictionaries for each actor and the entire supply chain
-    costs_brew = {'stock': [], 'backlog': [], 'total': []}
-    costs_bottl = {'stock': [], 'backlog': [], 'total': []}
-    costs_wholes = {'stock': [], 'backlog': [], 'total': []}
-    costs_bar = {'stock': [], 'backlog': [], 'total': []}
+    costs_brew = {'stock': [], 'backlog': [], 'setup': [], 'transport': [], 'total': []}
+    costs_bottl = {'stock': [], 'backlog': [], 'setup': [], 'transport': [], 'total': []}
+    costs_wholes = {'stock': [], 'backlog': [], 'setup': [], 'transport': [], 'total': []}
+    costs_bar = {'stock': [], 'backlog': [], 'setup': [], 'transport': [], 'total': []}
     
-    total_supply_chain_costs = {'stock': [], 'backlog': [], 'total': []}
+    total_supply_chain_costs = {'stock': [], 'backlog': [], 'setup': [], 'transport': [], 'total': []}
 
     # Helper function to calculate costs
     def calculate_costs(history):
         stock_costs = []
         backlog_costs = []
+        transport_costs = []
+        setup_costs = []
         total_costs = []
-        cum_stock = cum_backlog = cum_total = 0
+        cum_stock = cum_backlog = cum_transport = cum_setup = cum_total = 0
 
         for row in history:
-            stock_cost = row[4] * 0.5  # 0.5€ per unit of stock
-            backlog_cost = row[8] * 1  # 1€ per unit of backlog
-            total_cost = stock_cost + backlog_cost
+            stock_cost = row[4] * 0.5                                                   # 0.5€ per unit of stock
+            backlog_cost = row[8] * 1                                                  # 1€ per unit of backlog
+            transport_cost = -(-row[2] // 20) * 20                                     # 20€ per transport (ceiling division for full trucks)
+            setup_cost = 50 if row[3] > 0 else 0                                       # 50€ for setup costs
+            total_cost = stock_cost + backlog_cost + transport_cost + setup_cost       # Sum of all costs
 
             # Cumulative costs
             cum_stock += stock_cost
             cum_backlog += backlog_cost
+            cum_transport += transport_cost
+            cum_setup += setup_cost
             cum_total += total_cost
 
             stock_costs.append(cum_stock)
             backlog_costs.append(cum_backlog)
+            transport_costs.append(cum_transport)
+            setup_costs.append(cum_setup)
             total_costs.append(cum_total)
 
-        return stock_costs, backlog_costs, total_costs
+        return stock_costs, backlog_costs, transport_costs, setup_costs, total_costs
 
     # Calculate costs for each actor
-    costs_brew['stock'], costs_brew['backlog'], costs_brew['total'] = calculate_costs(brewery.history)
-    costs_bottl['stock'], costs_bottl['backlog'], costs_bottl['total'] = calculate_costs(bottler.history)
-    costs_wholes['stock'], costs_wholes['backlog'], costs_wholes['total'] = calculate_costs(wholesaler.history)
-    costs_bar['stock'], costs_bar['backlog'], costs_bar['total'] = calculate_costs(bar.history)
+    costs_brew['stock'], costs_brew['backlog'], costs_brew['transport'], costs_brew['setup'], costs_brew['total'] = calculate_costs(brewery.history)
+    costs_bottl['stock'], costs_bottl['backlog'], costs_bottl['transport'], costs_bottl['setup'], costs_bottl['total'] = calculate_costs(bottler.history)
+    costs_wholes['stock'], costs_wholes['backlog'], costs_wholes['transport'], costs_wholes['setup'], costs_wholes['total'] = calculate_costs(wholesaler.history)
+    costs_bar['stock'], costs_bar['backlog'], costs_bar['transport'], costs_bar['setup'], costs_bar['total'] = calculate_costs(bar.history)
 
     # Calculate total costs for the entire supply chain
     for i in range(len(weeks)):
         total_stock = costs_brew['stock'][i] + costs_bottl['stock'][i] + costs_wholes['stock'][i] + costs_bar['stock'][i]
         total_backlog = costs_brew['backlog'][i] + costs_bottl['backlog'][i] + costs_wholes['backlog'][i] + costs_bar['backlog'][i]
+        total_transport = costs_brew['transport'][i] + costs_bottl['transport'][i] + costs_wholes['transport'][i] + costs_bar['transport'][i]
+        total_setup = costs_brew['setup'][i] + costs_bottl['setup'][i] + costs_wholes['setup'][i] + costs_bar['setup'][i]
         total_total = costs_brew['total'][i] + costs_bottl['total'][i] + costs_wholes['total'][i] + costs_bar['total'][i]
 
         total_supply_chain_costs['stock'].append(total_stock)
         total_supply_chain_costs['backlog'].append(total_backlog)
+        total_supply_chain_costs['transport'].append(total_transport)
+        total_supply_chain_costs['setup'].append(total_setup)
         total_supply_chain_costs['total'].append(total_total)
 
     # Print total cost of supply chain
-    print(f"Total Cost of Supply Chain: {total_total} €")
+    print(f"Total Cost of Supply Chain: {total_total:.2f} €")
 
     # Plot costs for each actor
     fig_actor, axs_actor = plt.subplots(4, 1, figsize=(10, 12))
@@ -148,6 +160,8 @@ def plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar):
     for idx, actor in enumerate(actors):
         axs_actor[idx].plot(weeks, costs[idx]['stock'], label="Stock Costs", color=colors[idx], linestyle='--')
         axs_actor[idx].plot(weeks, costs[idx]['backlog'], label="Backlog Costs", color=colors[idx], linestyle=':')
+        axs_actor[idx].plot(weeks, costs[idx]['transport'], label="Transport Costs", color='purple', linestyle='-.')
+        axs_actor[idx].plot(weeks, costs[idx]['setup'], label="Setup Costs", color='brown', linestyle='dotted')
         axs_actor[idx].plot(weeks, costs[idx]['total'], label="Total Costs", color=colors[idx])
         axs_actor[idx].set_title(f'{actor} Costs Over Time')
         axs_actor[idx].set_xlabel('Weeks')
@@ -158,16 +172,14 @@ def plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar):
     plt.tight_layout()
     plt.show()
 
-
-
-    # Plot total costs for the entire supply chain
+    # Plot total supply chain costs in a separate figure
     fig_total, ax_total = plt.subplots(figsize=(10, 6))
-
     ax_total.plot(weeks, total_supply_chain_costs['stock'], label="Stock Costs", color='blue', linestyle='--')
-    ax_total.plot(weeks, total_supply_chain_costs['backlog'], label="Backlog Costs", color='orange', linestyle=':')
-    ax_total.plot(weeks, total_supply_chain_costs['total'], label="Total Costs", color='green')
-
-    ax_total.set_title('Cumulative Costs of the Entire Supply Chain Over Time')
+    ax_total.plot(weeks, total_supply_chain_costs['backlog'], label="Backlog Costs", color='green', linestyle=':')
+    ax_total.plot(weeks, total_supply_chain_costs['transport'], label="Transport Costs", color='purple', linestyle='-.')
+    ax_total.plot(weeks, total_supply_chain_costs['setup'], label="Setup Costs", color='brown', linestyle='dotted')
+    ax_total.plot(weeks, total_supply_chain_costs['total'], label="Total Costs", color='black')
+    ax_total.set_title('Total Supply Chain Costs Over Time')
     ax_total.set_xlabel('Weeks')
     ax_total.set_ylabel('Cumulative Costs (€)')
     ax_total.legend()
@@ -175,6 +187,7 @@ def plot_costs_per_actor_and_supply_chain(brewery, bottler, wholesaler, bar):
 
     plt.tight_layout()
     plt.show()
+
 
 
 # Funktion zum Berechnen des Servicelevels und zum Plotten
