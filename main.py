@@ -59,7 +59,7 @@ def sim():
         # Set customer demand for the bar
         # demand_guest = int(f.generate_positive_normal(avg_demand, std_dev))
         # demand_guest = 8 if i > 7 else 4
-        demand_guest = 8
+        demand_guest = 20
         # pass on demand to bar
         bar.order_cust = demand_guest
 
