@@ -4,8 +4,8 @@ Hello
 
 TODO 05.12.2024
 
-Plotting:
-- KPIs
+Plotting/KPI:
+- Anteil an nicht Backlog Deliverys (Wenn kein Backlog in Woche dann Delivery without Complaint aka Delivery Quality)
 
 Startfunktion:
 - Abfrage welche Demand und Orderfunktion genutzt werden soll
